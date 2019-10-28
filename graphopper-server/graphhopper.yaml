@@ -62,16 +62,20 @@
       tags:
         - start
       copy:
-        src: graphhopper.service
+        src: etc/systemd/system/graphhopper.service
         dest: /etc/systemd/system/graphhopper.service
       become: yes
     - name: Recursively change ownership of opt
+      tags:
+        - start
       file:
         path: /opt/graphhopper
         state: directory
         recurse: yes
         owner: graphhopper
     - name: Recursively change ownership of var opt
+      tags:
+        - start
       file:
         path: /var/opt/graphhopper
         state: directory
