@@ -1,0 +1,6 @@
+
+---
+- hosts: graphservers
+  tasks:
+    - name: install certificate
+      shell: certbot --non-interactive --agree-tos --authenticator webroot --webroot-path /var/www/ --installer nginx -d {{ domain_name }} -m {{ email }}

@@ -1,0 +1,22 @@
+---
+- hosts: tileservers
+  tasks:
+    - name: Create var directory
+      file:
+        path: /var/opt/tileserver
+        state: directory
+    - name: download tile data
+      get_url:
+        url: https://data.vaneerten.pro/tile/netherlands.mbtiles
+        dest: /var/opt/tileserver/netherlands.mbtiles
+    - name: Pull Docker image
+      docker_image:
+        name: 'klokantech/tileserver-gl:v2.4.0'
+        source: pull
+    - name: copy the service config file
+      copy:
+        src: etc/systemd/system/tileserver.service
+        dest: /etc/systemd/system/tileserver.service
+      become: yes
+    - name: start tileserver
+      systemd: state=started name=tileserver daemon_reload=yes

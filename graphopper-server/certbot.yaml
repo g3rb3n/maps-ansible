@@ -1,0 +1,12 @@
+---
+- hosts: graphservers
+  tasks:
+    - name: ensure nginx is at the latest version
+      apt: name=software-properties-common state=latest
+      become: yes
+    - name: Add Certbot Repository
+      apt_repository:
+        repo: ppa:certbot/certbot
+        state: present
+    - name: Update apt and install docker-ce
+      apt: update_cache=yes name=python-certbot-nginx state=latest

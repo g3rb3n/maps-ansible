@@ -1,0 +1,17 @@
+[Unit]
+Description=Graphhopper
+Requires=network.target
+After=syslog.target
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/graphhopper
+User=graphhopper
+EnvironmentFile=/etc/graphhopper/graphhopper.conf
+ExecStart=/usr/bin/java -server -Xconcurrentio -Xmx${MEM}m -Xms${MEM}m -Dgraphhopper.datareader.file=${OSM_FILE} -Dgraphhopper.graph.location=${GRAPH_DIR} -jar $JAR_FILE server $CONFIG
+
+ExecStop=/bin/kill -TERM $MAINPID
+TimeoutSec=300
+[Install]
+WantedBy=multi-user.target

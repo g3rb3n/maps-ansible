@@ -1,0 +1,22 @@
+server {
+    server_name {{ domain_name }};
+
+    listen 80;
+    listen [::]:80;
+
+    root /var/www;
+
+    location /.well-known/ {
+    }
+
+    location / {
+        proxy_set_header    X-Real-IP $remote_addr;
+        proxy_set_header    X-Forwarded-For $remote_addr;
+        proxy_set_header    X-Forwarded-Host $remote_addr;
+        proxy_set_header    Host $http_host;
+        if ($modified_uri ~ ^/(.+)$) {
+            set $modified_uri $2;
+        }
+        proxy_pass    http://127.0.0.1:8989$modified_uri;
+    }
+}

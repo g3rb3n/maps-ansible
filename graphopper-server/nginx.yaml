@@ -1,0 +1,27 @@
+---
+- hosts: graphservers
+  tasks:
+    - name: ensure nginx is at the latest version
+      apt: name=nginx state=latest
+      become: yes
+    - name: copy the nginx config file and restart nginx
+      template:
+        src: etc/nginx/sites-available/graphhopper-http
+        dest: /etc/nginx/sites-available/graphhopper-http
+      become: yes
+    - name: remove default nginx config
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      become: yes
+    - name: create symlink
+      file:
+        src: /etc/nginx/sites-available/graphhopper-http
+        dest: /etc/nginx/sites-enabled/graphhopper-http
+        state: link
+      become: yes
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+      become: yes

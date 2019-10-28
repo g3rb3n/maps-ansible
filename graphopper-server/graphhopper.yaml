@@ -1,0 +1,83 @@
+---
+- hosts: graphservers
+  tasks:
+    - name: Add the graphhopper user
+      user:
+        name: graphhopper
+    - name: Install required system packages
+      apt: name={{ item }} state=latest update_cache=yes
+      loop: [ 'unzip', 'default-jre', 'default-jdk', 'git', 'maven' ]
+    - name: Create opt directory
+      file:
+        path: /opt/graphhopper
+        state: directory
+    - name: Create etc directory
+      file:
+        path: /etc/graphhopper
+        state: directory
+    - name: Create var directory
+      file:
+        path: /var/opt/graphhopper
+        state: directory
+    - name: graphhopper source
+      git:
+        repo: 'https://github.com/graphhopper/graphhopper.git'
+        dest: /opt/graphhopper/
+        version: 0.13.0
+    - name: graphhopper jar
+      tags:
+        - build
+      shell: ./graphhopper.sh --action build
+      args:
+        chdir: /opt/graphhopper
+        creates: /opt/graphhopper/web/target/graphhopper-web-0.13-SNAPSHOT.jar
+    - name: download graph data
+      get_url:
+        url: https://data.vaneerten.pro/graph/netherlands-20190601.osm.pbf
+        dest: /var/opt/graphhopper/netherlands-20190601.osm.pbf
+    - name: download graph data
+      get_url:
+        url: https://data.vaneerten.pro/graph/netherlands-20190601.osm-gh.txz
+        dest: /var/opt/graphhopper/netherlands-20190601.osm-gh.txz
+    - name: extract data
+      unarchive:
+        remote_src: yes
+        src: /var/opt/graphhopper/netherlands-20190601.osm-gh.txz
+        dest: /var/opt/graphhopper/
+    - name: copy the service config file
+      tags:
+        - start
+      copy:
+        src: etc/graphhopper/graphhopper.conf
+        dest: /etc/graphhopper/graphhopper.conf
+      become: yes
+    - name: copy the service config file
+      tags:
+        - start
+      copy:
+        src: opt/graphhopper/config.yml
+        dest: /opt/graphhopper/config.yml
+      become: yes
+    - name: copy the service file
+      tags:
+        - start
+      copy:
+        src: graphhopper.service
+        dest: /etc/systemd/system/graphhopper.service
+      become: yes
+    - name: Recursively change ownership of opt
+      file:
+        path: /opt/graphhopper
+        state: directory
+        recurse: yes
+        owner: graphhopper
+    - name: Recursively change ownership of var opt
+      file:
+        path: /var/opt/graphhopper
+        state: directory
+        recurse: yes
+        owner: graphhopper
+    - name: start graphhopper
+      tags:
+        - start
+      systemd: state=started name=graphhopper daemon_reload=yes

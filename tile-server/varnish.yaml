@@ -1,0 +1,21 @@
+---
+- hosts: tileservers
+  tasks:
+    - name: ensure varnish is at the latest version
+      apt: name=varnish state=latest
+      become: yes
+    - name: copy varnish service
+      file:
+        src: etc/systemd/system/varnish.service
+        dest: /etc/systemd/system/varnish.service
+      become: yes
+    - name: copy varnish config
+      file:
+        src: etc/varnish/tileserver.vcl
+        dest: /etc/varnish/tileserver.vcl
+      become: yes
+    - name: restart varnish
+      service:
+        name: varnish
+        state: restarted
+      become: yes
